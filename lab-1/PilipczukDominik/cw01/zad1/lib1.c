@@ -53,6 +53,10 @@ void count_file(const char * filename, Table * tab){
 	
 	fclose(tmp_file);
 	tab->cur_items++;
+
+	// Remove tmp_file
+	remove("/tmp/file_len");
+
 	return;
 }
 
