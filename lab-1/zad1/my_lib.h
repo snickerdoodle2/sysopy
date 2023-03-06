@@ -4,7 +4,7 @@ typedef struct Table {
 	int cur_items;
 } Table;
 
-Table tab_init(int size);
+Table * tab_init(int size);
 
 void count_file(const char * filename, Table * tab);
 

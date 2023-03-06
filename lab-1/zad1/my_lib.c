@@ -2,16 +2,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "zad1.h"
+#include "my_lib.h"
 
-Table tab_init(int size) {
+Table * tab_init(int size) {
 	Table tab;
 
 	tab.cur_items = 0;
 	tab.max_items = size;
 	tab.blocks = calloc(size, sizeof(char *));
 
-	return tab;
+	return &tab;
 }
 
 void count_file(const char * filename, Table * tab) {
@@ -24,7 +24,7 @@ void count_file(const char * filename, Table * tab) {
 	// <file_name> + wc + 3*' ' + > + /tmp/file_len
 	// <file_name> + 2 + 3 + 1 + 13
 	int command_length = strlen(filename) + 20;
-	char * command = (char *) calloc(command_length, sizeof(char *));
+	char * command = (char *) calloc(command_length, sizeof(char));
 	sprintf(command, "wc %s > /tmp/file_len", filename);
 
 	system(command);
@@ -45,7 +45,7 @@ void count_file(const char * filename, Table * tab) {
 
 	// Populate data
 	char * buffer;
-	buffer = calloc(file_length, sizeof(char *));
+	buffer = calloc(file_length, sizeof(char));
 	fread(buffer, 1, file_length, tmp_file);
 	
 	fclose(tmp_file);

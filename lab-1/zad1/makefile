@@ -1,13 +1,13 @@
 static:
 	make clear
-	gcc -Wall -c zad1.c
-	ar crs libzad1.a zad1.o
+	gcc -Wall -c my_lib.c
+	ar crs libmy_lib.a my_lib.o
 	rm -f *.o
 
 dynamic:
 	make clear
-	gcc -Wall -c zad1.c
-	gcc -Wall -shared -fPIC -o libsay.so zad1.o
+	gcc -Wall -c my_lib.c
+	gcc -Wall -shared -fPIC -o libmy_lib.so my_lib.o
 	rm -f *.o
 
 clear:
