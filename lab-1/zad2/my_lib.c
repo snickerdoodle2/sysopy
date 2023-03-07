@@ -15,7 +15,9 @@ Table * tab_init(int size) {
 }
 
 void count_file(const char * filename, Table * tab) {
-
+	if (tab->cur_items == tab->max_items){
+		return;
+	}
 	// Creating and executing wc command.
 
 
