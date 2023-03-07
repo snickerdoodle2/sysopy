@@ -1,14 +1,30 @@
+#include <dlfcn.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/times.h>
 #include <unistd.h>
 
-#include "my_lib.h"
+typedef struct tms tms;
+
 
 #define INPUT_SIZE 256
 
-typedef struct tms tms;
+typedef struct Table {
+	char ** blocks;
+	int max_items;
+	int cur_items;
+} Table;
+
+Table * (*tab_init)(int size);
+void (*count_file)(const char * filename, Table * tab);
+char * (*block_content)(int index, Table * tab);
+void (*remove_block)(int index, Table * tab);
+void (*free_table)(Table * tab);
+
+
+
 
 char * get_time(tms cpu_start, tms cpu_end, clock_t r_start, clock_t r_end) {
 	double elapsed_real = (double) (r_end - r_start) / sysconf(_SC_CLK_TCK);
@@ -102,6 +118,20 @@ int main() {
 	char input[INPUT_SIZE];
 	Table * table = NULL;
 
+	void *my_lib = dlopen("./libmy_lib.so", RTLD_LAZY);
+
+	tab_init = dlsym(my_lib, "tab_init");
+	if(dlerror()!=NULL){printf("blad tab_init\n"); return 1;}
+	count_file = dlsym(my_lib, "count_file");
+	if(dlerror()!=NULL){printf("blad count_file\n"); return 1;}
+	block_content = dlsym(my_lib, "block_content");
+	if(dlerror()!=NULL){printf("blad block_content\n"); return 1;}
+	remove_block = dlsym(my_lib, "remove_block");
+	if(dlerror()!=NULL){printf("blad remove_block\n"); return 1;}
+	free_table = dlsym(my_lib, "free_table");
+	if(dlerror()!=NULL){printf("blad free_table	\n"); return 1;}
+
+
 	while(fgets(input, INPUT_SIZE, stdin) != NULL) {
 		input[strlen(input) - 1] = '\0';
 
@@ -132,6 +162,8 @@ int main() {
 		}
 	
 	}
+
+	dlclose(my_lib);
 
 	return 0;
 }
