@@ -27,6 +27,7 @@ Table * exec_init(char * argv) {
 	clock_t r_start = times(&cpu_start);
 
 	Table * tab = tab_init(atoi(argv));
+	printf("%d\n", tab->max_items);
 
 	clock_t r_end = times(&cpu_end);
 	printf(get_time(cpu_start, cpu_end, r_start, r_end));

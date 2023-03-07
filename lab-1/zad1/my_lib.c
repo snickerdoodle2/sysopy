@@ -67,14 +67,11 @@ char * block_content(int index, Table * tab) {
 void remove_block(int index, Table * tab) {
 	if (index >= tab->cur_items) return;
 	free(tab->blocks[index]);
-	if (index == tab->max_items - 1){
-		tab->cur_items--;
-		return;
-	}
+	tab->cur_items--;
+	if (index == tab->max_items - 1) return;
 
 	int to_move = tab->max_items - index - 1;
 	memmove(tab->blocks[index], tab->blocks[index+1], to_move * sizeof(char *));
-	tab->cur_items--;
 
 	return;
 }
