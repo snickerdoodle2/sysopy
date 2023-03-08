@@ -29,7 +29,7 @@ Table * exec_init(char * argv) {
 	Table * tab = tab_init(atoi(argv));
 
 	clock_t r_end = times(&cpu_end);
-	printf(get_time(cpu_start, cpu_end, r_start, r_end));
+	printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 	return tab;
 }
 
@@ -38,7 +38,7 @@ void exec_count(char * argv, Table * table) {
 	clock_t r_start = times(&cpu_start);
 	if (table == NULL) {
 		clock_t r_end = times(&cpu_end);
-		printf(get_time(cpu_start, cpu_end, r_start, r_end));
+		printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 		return;
 	};
 		
@@ -47,7 +47,7 @@ void exec_count(char * argv, Table * table) {
 	if (file == NULL) {
 		printf("Podany plik nie istnieje!\n");
 		clock_t r_end = times(&cpu_end);
-		printf(get_time(cpu_start, cpu_end, r_start, r_end));
+		printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 		return;
 	}
 	fclose(file);
@@ -55,7 +55,7 @@ void exec_count(char * argv, Table * table) {
 	count_file(argv, table);
 
 	clock_t r_end = times(&cpu_end);
-	printf(get_time(cpu_start, cpu_end, r_start, r_end));
+	printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 }
 
 void exec_show(char * argv, Table * table) {
@@ -63,12 +63,12 @@ void exec_show(char * argv, Table * table) {
 	clock_t r_start = times(&cpu_start);
 	if (table == NULL) {
 		clock_t r_end = times(&cpu_end);
-		printf(get_time(cpu_start, cpu_end, r_start, r_end));
+		printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 		return;
 	};
 	printf("%s", block_content(atoi(argv), table));
 	clock_t r_end = times(&cpu_end);
-	printf(get_time(cpu_start, cpu_end, r_start, r_end));
+	printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 }
 
 void exec_delete(char * argv, Table * table) {
@@ -76,12 +76,12 @@ void exec_delete(char * argv, Table * table) {
 	clock_t r_start = times(&cpu_start);
 	if (table == NULL) {
 		clock_t r_end = times(&cpu_end);
-		printf(get_time(cpu_start, cpu_end, r_start, r_end));
+		printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 		return;
 	};
 	remove_block(atoi(argv), table);
 	clock_t r_end = times(&cpu_end);
-	printf(get_time(cpu_start, cpu_end, r_start, r_end));
+	printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 }
 
 void exec_destroy(Table * table) {
@@ -89,12 +89,12 @@ void exec_destroy(Table * table) {
 	clock_t r_start = times(&cpu_start);
 	if (table == NULL) {
 		clock_t r_end = times(&cpu_end);
-		printf(get_time(cpu_start, cpu_end, r_start, r_end));
+		printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 		return;
 	};
 	free_table(table);
 	clock_t r_end = times(&cpu_end);
-	printf(get_time(cpu_start, cpu_end, r_start, r_end));
+	printf("%s", get_time(cpu_start, cpu_end, r_start, r_end));
 }
 
 
@@ -104,6 +104,7 @@ int main() {
 
 	while(fgets(input, INPUT_SIZE, stdin) != NULL) {
 		input[strlen(input) - 1] = '\0';
+
 
 		char * ptr;
 		ptr = strtok(input, " ");
