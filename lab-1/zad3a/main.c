@@ -105,7 +105,6 @@ int main() {
 	while(fgets(input, INPUT_SIZE, stdin) != NULL) {
 		input[strlen(input) - 1] = '\0';
 
-
 		char * ptr;
 		ptr = strtok(input, " ");
 		char command[10] = "";

@@ -1,0 +1,1 @@
+Pliki wynikowe nieznacznie się różnią, bez względu na metodę kompilacji. Największą różnicą jest rzędzu 0.01 sekundy.

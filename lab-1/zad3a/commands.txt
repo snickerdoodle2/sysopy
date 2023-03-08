@@ -1,0 +1,20 @@
+init 6
+count main2.c
+count main.c
+count makefile
+count my_lib.c
+count my_lib.h
+count commands.txt
+show 0
+show 1
+show 2
+show 3
+show 4
+show 5
+delete 5
+delete 4
+delete 3
+delete 2
+delete 1
+delete 0
+destroy

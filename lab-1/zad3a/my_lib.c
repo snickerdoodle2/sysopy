@@ -15,7 +15,9 @@ Table * tab_init(int size) {
 }
 
 void count_file(const char * filename, Table * tab) {
-
+	if (tab->cur_items == tab->max_items){
+		return;
+	}
 	// Creating and executing wc command.
 
 
@@ -59,16 +61,19 @@ void count_file(const char * filename, Table * tab) {
 }
 
 char * block_content(int index, Table * tab) {
-	if (index >= tab->cur_items) return NULL;
+	if (index >= tab->cur_items) return "---empty---\n";
 
 	return tab->blocks[index];
 }
 
-// TODO: Poprawić remove_block (zeby przesuwala wszystko itp.)
 void remove_block(int index, Table * tab) {
 	if (index >= tab->cur_items) return;
-
 	free(tab->blocks[index]);
+	tab->cur_items--;
+	if (index == tab->max_items - 1) return;
+
+	int to_move = tab->max_items - index - 1;
+	memmove(tab->blocks[index], tab->blocks[index+1], to_move * sizeof(char *));
 
 	return;
 }
