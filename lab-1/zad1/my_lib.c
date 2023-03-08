@@ -25,13 +25,14 @@ void count_file(const char * filename, Table * tab) {
 	// wc <file_name> > /tmp/file_len
 	// <file_name> + wc + 3*' ' + > + /tmp/file_len
 	// <file_name> + 2 + 3 + 1 + 13
+	int res;
 	int command_length = strlen(filename) + 20;
 	char * command = (char *) calloc(command_length, sizeof(char));
 	sprintf(command, "wc %s > /tmp/file_len", filename);
 
-	system(command);
-
+	res = system(command);
 	free(command);
+	if (res == -1) return;
 
 	// Opening tmp file
 
@@ -48,9 +49,10 @@ void count_file(const char * filename, Table * tab) {
 	// Populate data
 	char * buffer;
 	buffer = calloc(file_length, sizeof(char));
-	fread(buffer, 1, file_length, tmp_file);
+	res = fread(buffer, 1, file_length, tmp_file);
 	
 	fclose(tmp_file);
+	if (res == 0) return;
 	tab->blocks[tab->cur_items] = buffer;
 	tab->cur_items++;
 

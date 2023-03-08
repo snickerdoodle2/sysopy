@@ -1,15 +1,15 @@
 real: 0.000000 user: 0.000000 system: 0.000000
-real: 0.010000 user: 0.000000 system: 0.000000
 real: 0.000000 user: 0.000000 system: 0.000000
 real: 0.000000 user: 0.000000 system: 0.000000
 real: 0.010000 user: 0.000000 system: 0.000000
 real: 0.000000 user: 0.000000 system: 0.000000
 real: 0.000000 user: 0.000000 system: 0.000000
- 168  491 4263 main2.c
+real: 0.010000 user: 0.000000 system: 0.000000
+ 168  501 4323 main2.c
 real: 0.000000 user: 0.000000 system: 0.000000
- 135  402 3356 main.c
+ 136  412 3417 main.c
 real: 0.000000 user: 0.000000 system: 0.000000
- 39 109 754 makefile
+ 40 109 755 makefile
 real: 0.000000 user: 0.000000 system: 0.000000
   87  238 1815 my_lib.c
 real: 0.000000 user: 0.000000 system: 0.000000
