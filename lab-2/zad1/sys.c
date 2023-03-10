@@ -23,14 +23,14 @@ int main(int argc, char *argv[]) {
 
 	int in_file = open(in_file_path, O_RDONLY);
 	if (in_file == -1){
-		printf("Nie udalo sie odczytac pliku wejsciowego!");
+		printf("Nie udalo sie odczytac pliku wejsciowego!\n");
 		return 1;
 	}
 
 
-	int out_file = open(out_file_path, O_WRONLY | O_CREAT, 0777 ); 
+	int out_file = open(out_file_path, O_WRONLY | O_CREAT, 0666 ); 
 	if (out_file == -1){
-		printf("Nie udalo sie odczytac pliku wyjsciowego!");
+		printf("Nie udalo sie odczytac pliku wyjsciowego!\n");
 		return 1;
 	}
 
@@ -41,7 +41,6 @@ int main(int argc, char *argv[]) {
 		ok = fill_buffer(in_file, buffer);
 		if (!ok) break;
 		if (buffer[0] == char_find){
-			printf("%c %d\n", buffer[0], ok);
 			buffer[0] = char_replace[0];
 		}
 		write(out_file, buffer, sizeof(char));

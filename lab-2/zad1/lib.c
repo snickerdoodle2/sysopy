@@ -18,13 +18,13 @@ int main(int argc, char *argv[]) {
 
 	FILE * in_file = fopen(in_file_path, "r");
 	if (in_file == NULL){
-		printf("Nie udalo sie odczytac pliku wejsciowego!");
+		printf("Nie udalo sie odczytac pliku wejsciowego!\n");
 		return 1;
 	}
 
 	FILE * out_file = fopen(out_file_path, "w");
 	if (out_file == NULL){
-		printf("Nie udalo sie odczytac pliku wyjsciowego!");
+		printf("Nie udalo sie odczytac pliku wyjsciowego!\n");
 		return 1;
 	}
 
@@ -35,7 +35,6 @@ int main(int argc, char *argv[]) {
 		ok = fill_buffer(in_file, buffer);
 		if (!ok) break;
 		if (buffer[0] == char_find){
-			printf("%c %d\n", buffer[0], ok);
 			buffer[0] = char_replace[0];
 		}
 		fwrite(buffer, sizeof(char), 1, out_file);
