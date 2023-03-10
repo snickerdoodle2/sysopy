@@ -7,6 +7,5 @@
 1. Projekty oddawać wtorek do 24:00
 
 ## TODO
-1. Założyć konto na komputerze.
 
-1. 
+1. Ustawic ssh na borgu
