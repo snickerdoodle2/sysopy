@@ -15,4 +15,4 @@ test:
 	{ time ./sys o z in.txt out.txt; } 2>> pomiar_zad_1.txt
 
 clean:
-	rm -f lib sys 
+	rm -f lib sys out.txt pomiar_zad_1.txt
