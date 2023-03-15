@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	char buffer[1024];
+	char buffer[1025];
 	int ok;
 	fseek(in_file, 0, SEEK_END);
     long file_length = ftell(in_file);
@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
                 printf("Cos poszlo nie tak!\n");
                 return 1;
         }
+		
 		buffer[ok] = 0;
 
         ok = fwrite(strrev(buffer), sizeof(char), ok, out_file);
