@@ -10,6 +10,6 @@ int main(int argc, char * argv[]) {
 
 	printf("%d: ", getpid());
 	fflush(stdout);
-	int res = execl("/bin/ls", "ls", argv[1], NULL);
+	execl("/bin/ls", "ls", argv[1], NULL);
 	return 0;
 }
