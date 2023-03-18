@@ -8,7 +8,7 @@ int main(int argc, char * argv[]) {
 		return 1;
 	}
 
-	printf("My ls: ");
+	printf("%d: ", getpid());
 	fflush(stdout);
 	int res = execl("/bin/ls", "ls", argv[1], NULL);
 	return 0;
