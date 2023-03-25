@@ -1,6 +1,6 @@
 all:
 	make clean
-	gcc -Wall -o main main.c
+	gcc -Wall -o fork fork.c
 
 clean:
-	rm -f main
+	rm -f fork
