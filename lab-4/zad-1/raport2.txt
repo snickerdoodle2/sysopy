@@ -1,0 +1,4 @@
+Zauważone różnice pokrywają się z tym co było podane w materiałach pomocniczych.
+Czyli:
+- Procesy potomne wywołane przy pomocy fork i exec zachowują instrukcje obsługi sygnałów oraz maski
+- Różnica jest w zachowaniu przy nieobsłużonych sygnałach: fork je czyści, exec je "przekazuje"
