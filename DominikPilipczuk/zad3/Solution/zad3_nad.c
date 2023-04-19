@@ -17,7 +17,9 @@ potok nazwany 'potok1'*/
 FILE * potok = NULL;
 
 void handle(int id) {
-  if (potok == NULL) return;
+  if (potok == NULL) {
+	return;
+  }
 
   fwrite((void *) &ob1, (sizeof ob1), 1, potok);
 }

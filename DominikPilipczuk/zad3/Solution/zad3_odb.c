@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdlib.h>
 
 struct pak{
  int i;
@@ -11,16 +12,20 @@ struct pak{
 int main (int lpar, char *tab[]){
   int w1;
   struct pak ob1;
-  int res = mkfifoat("potok1", "r");
-  FILE * potok = fopen("potok1", "r");
+  int res = mkfifo("potok1", 0666);
 
-  if (potok == NULL) return 1;
   while (1){
-    void * buf;
+  	FILE * potok = fopen("potok1", "r");
+  	if (potok == NULL) return 1;
+    void * buf = malloc(sizeof(struct pak));
     int d = fread(buf, (sizeof (struct pak)), 1, potok);
     ob1 = *( struct pak *) buf;
+  	fclose(potok);
+	if (d > 0){
     printf("otrzymano: %d %c\n",ob1.i,ob1.lit); fflush(stdout);
+	}
   }
+
 
   return 0;
 }
