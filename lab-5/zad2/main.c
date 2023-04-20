@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 double integrate(double f(double), double start, double stop, double dx) {
 	double out = 0;
@@ -25,18 +27,54 @@ int main(int argc, char ** argv) {
 	int n = atoi(argv[2]);
 
 	int * amount_per_child = calloc(n, sizeof(int));
+	int * read_pipes = calloc(n, sizeof(int));
 
 	double start = 0.0;
 	while (start < 1){
 		for (int i = 0; i < n; i++) {
 			amount_per_child[i]++;
 			start += rect_width;
+			if (start >= 1) break;
 		}
 	}
 
+	double stop = 0.0;
+	int child_pid;
 	for (int i = 0; i < n; i++) {
-		printf("%d\n", amount_per_child[i]);
+		int fd[2];
+		pipe(fd);
+
+		start = stop;
+		stop = start + amount_per_child[i] * rect_width;
+		if (stop > 1) stop = 1;
+
+		child_pid = fork();
+
+		if (child_pid == 0) {
+			close(fd[0]);
+			double pi_part = integrate(function, start, stop, rect_width);
+			write(fd[1], &pi_part, sizeof(double));
+			break;
+		} else {
+			close(fd[1]);
+			read_pipes[i] = fd[0];
+		}
 	}
+
+	if (child_pid == 0) return 0;
+
+	double pi = 0.0;
+
+	for (int i = 0; i < n; i++) {
+		double pi_part;
+		read(read_pipes[i], &pi_part, sizeof(double));
+		pi += pi_part;
+	}
+
+	printf("%.30lf\n", pi);
+
+	free(amount_per_child);
+	free(read_pipes);
 
 	return 0;
 }
