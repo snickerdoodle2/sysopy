@@ -16,8 +16,8 @@ int main() {
 	char * homedir = getenv("HOME");
 	key_t server_key = ftok(homedir, '0');
 	printf("%d\n", server_key);
-	int res = msgget(server_key, IPC_CREAT | 0666);
-	if (res == -1) {
+	int server_queue = msgget(server_key, IPC_CREAT | 0666);
+	if (server_queue == -1) {
 		printf("Nie udalo sie utworzyc kolejki!\n");
 		return 1;
 	}
@@ -31,7 +31,7 @@ int main() {
 	int msg_res;
 
 	while(run){
-		msg_res = msgrcv(server_key, &init_msg, sizeof(int), CLIENT_INIT, IPC_NOWAIT | S_IRUSR | S_IWUSR);
+		msg_res = msgrcv(server_queue, &init_msg, sizeof(int), CLIENT_INIT, IPC_NOWAIT | S_IRUSR | S_IWUSR);
 		if (msg_res != -1) {
 			printf("Id klienta: %d\n", init_msg.IPC_ID);
 		}
