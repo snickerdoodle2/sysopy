@@ -102,6 +102,7 @@ int main(int argc, char ** argv) {
 	
 
 	printf("%.30lf\n", pi);
+	printf("%s", time_elapsed);
 
 	free(amount_per_child);
 	free(read_pipes);
