@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+int run = 1;
+void handle(int signum) {
+	run = 0;
+}
+
 int main() {
 	char * homedir = getenv("Home");
 	ket_t server_key = ftok(homedir, 1);
