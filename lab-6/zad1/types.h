@@ -8,7 +8,7 @@
 #define COMMAND_2ONE 4
 #define COMMAND_STOP 5
 
-#define CLIENT_RESPONSE 5
+#define CLIENT_RESPONSE 6
 
 struct init_msg {
 	long msg_type;

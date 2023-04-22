@@ -12,7 +12,6 @@
 
 int run = 1;
 void handle(int signum) {
-	printf("Koncze prace...\n");
 	run = 0;
 }
 
@@ -39,36 +38,65 @@ int main() {
 	free(init_msg);
 
 	signal(SIGINT, handle);
-	while(run);
 
-	struct command_msg command1;
-	command1.msg_type = COMMAND_2ONE;
-	command1.recipient_id = 1;
-	strcpy(command1.msg, "Siemka :D\n");
-	msgsnd(client_queue, &command1, sizeof(struct command_msg) - sizeof(long), 0);
+	int pid = fork();
 
-	struct response_msg response;
+	if (pid == 0) {
+		struct response_msg response;
+		while (run) {
+			res = msgrcv(client_queue, &response, RESPONSE_LENGTH, 0, IPC_NOWAIT);
+			if (res > 0) {
+				printf("--------------------\n");
+				printf("%s", response.res);
+				printf("--------------------\n");
+				fflush(stdout);
+			}
+		}
+		return 0;
+	} else {
+		char command_buffer[1024];
+		fflush(stdout);
+		while(run && fgets(command_buffer, 1024, stdin)) {
+			char * command = strtok(command_buffer, " ");
 
-	run = 1;
-
-	while (run) {
-		res = msgrcv(client_queue, &response, RESPONSE_LENGTH, 0, IPC_NOWAIT);
-		if (res > 0) {
-			printf("--------------------\n");
-			printf("%s", response.res);
-			printf("--------------------\n");
-			fflush(stdout);
+			if (strcmp(command, "LIST\n") == 0) {
+				struct command_msg command;
+				command.msg_type = COMMAND_LIST;
+				msgsnd(client_queue, &command, sizeof(struct command_msg) - sizeof(long), 0);
+			} else if (strcmp(command, "2ALL") == 0) {
+				struct command_msg command;
+				command.msg_type = COMMAND_2ALL;
+				char * message = strtok(NULL, "");
+				if (message != NULL) {
+					strcpy(command.msg, message);
+					msgsnd(client_queue, &command, sizeof(struct command_msg) - sizeof(long), 0);
+				}
+			} else if (strcmp(command, "2ONE") == 0) {
+				struct command_msg command;
+				command.msg_type = COMMAND_2ONE;
+				command.recipient_id = atoi(strtok(NULL, " "));
+				char * message = strtok(NULL, "");
+				if (message != NULL) {
+					strcpy(command.msg, message);
+					msgsnd(client_queue, &command, sizeof(struct command_msg) - sizeof(long), 0);
+				}
+			} else if (strcmp(command, "STOP\n") == 0) {
+				run = 0;
+			} else {
+				printf("Nieznana komenda!\n");
+				fflush(stdout);
+			}
 		}
 	}
 
-	struct command_msg command2;
-	command2.msg_type = COMMAND_STOP;
-	msgsnd(client_queue, &command2, sizeof(struct command_msg) - sizeof(long), 0);
-	
-
-	sleep(5);
-
-
+	if (pid != 0) {
+		kill(pid, SIGINT);
+		struct command_msg command2;
+		command2.msg_type = COMMAND_STOP;
+		msgsnd(client_queue, &command2, sizeof(struct command_msg) - sizeof(long), 0);
+	}
+	// czekaj na odpowiedz serwera
+	sleep(1);
 	msgctl(client_queue, IPC_RMID, NULL);
 	return 0;
 }
