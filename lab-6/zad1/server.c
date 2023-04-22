@@ -77,10 +77,29 @@ int main() {
 					break;
 				case COMMAND_LIST:
 					sleep(0);
-					struct response_msg * res = malloc(sizeof(struct response_msg));
-					res->msg_type = CLIENT_RESPONSE;
-					strcpy(res->res, list_clients(clients));
-					msg_res = msgsnd(client_queue, res, RESPONSE_LENGTH, 0);
+					struct response_msg res;
+					res.msg_type = CLIENT_RESPONSE;
+					strcpy(res.res, list_clients(clients));
+					msgsnd(client_queue, &res, RESPONSE_LENGTH, 0);
+					break;
+				case COMMAND_2ALL:
+					for (int j = 0; j < MAX_CLIENTS; j++) {
+						if (clients[j] == 0 || j == i) continue;
+						struct response_msg message;
+						message.msg_type = CLIENT_RESPONSE;
+						strcpy(message.res, command.msg);
+						msg_res = msgsnd(clients[j], &message, RESPONSE_LENGTH, 0);
+					}
+					break;
+				case COMMAND_2ONE:
+					sleep(0);
+					int recepient_queue = clients[command.recipient_id];
+					if (recepient_queue != 0){
+						struct response_msg message;
+						message.msg_type = CLIENT_RESPONSE;
+						strcpy(message.res, command.msg);
+						msg_res = msgsnd(recepient_queue, &message, RESPONSE_LENGTH, 0);
+					}
 					break;
 				default:
 					break;

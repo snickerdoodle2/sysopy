@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <signal.h>
+#include <string.h>
 #include "types.h"
 
 #include <unistd.h>
@@ -40,12 +41,11 @@ int main() {
 	signal(SIGINT, handle);
 	while(run);
 
-	struct command_msg * command1 = malloc(sizeof(struct command_msg));
-	init_msg->msg_type = COMMAND_LIST;
-	res = msgsnd(client_queue, command1, sizeof(struct command_msg) - sizeof(long), 0);
-	free(command1);
-	printf("%d\n", res);
-	fflush(stdout);
+	struct command_msg command1;
+	command1.msg_type = COMMAND_2ONE;
+	command1.recipient_id = 1;
+	strcpy(command1.msg, "Siemka :D\n");
+	msgsnd(client_queue, &command1, sizeof(struct command_msg) - sizeof(long), 0);
 
 	struct response_msg response;
 
@@ -61,10 +61,10 @@ int main() {
 		}
 	}
 
-	struct command_msg * command2 = malloc(sizeof(struct command_msg));
-	init_msg->msg_type = COMMAND_STOP;
-	msgsnd(client_queue, command2, sizeof(command2) - sizeof(long), 0);
-	free(command2);
+	struct command_msg command2;
+	command2.msg_type = COMMAND_STOP;
+	msgsnd(client_queue, &command2, sizeof(struct command_msg) - sizeof(long), 0);
+	
 
 	sleep(5);
 

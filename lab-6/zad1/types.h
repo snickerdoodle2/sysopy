@@ -5,8 +5,8 @@
 
 #define COMMAND_LIST 2
 #define COMMAND_2ALL 3
-#define COMMAND_2ONE 3
-#define COMMAND_STOP 4
+#define COMMAND_2ONE 4
+#define COMMAND_STOP 5
 
 #define CLIENT_RESPONSE 5
 
@@ -18,7 +18,7 @@ struct init_msg {
 struct command_msg {
 	long msg_type;
 	int recipient_id;
-	char * msg;
+	char msg[RESPONSE_LENGTH];
 };
 
 struct response_msg {
