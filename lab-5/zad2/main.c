@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <sys/times.h>
 
 double integrate(double f(double), double start, double stop, double dx) {
 	double out = 0;
