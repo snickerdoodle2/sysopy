@@ -94,7 +94,7 @@ int main() {
 					msgsnd(client_queue, &command, sizeof(struct command_msg) - sizeof(long), 0);
 				}
 			} else if (strcmp(command, "STOP\n") == 0) {
-				run = 0;
+				raise(SIGINT);
 			} else {
 				printf("Nieznana komenda!\n");
 				fflush(stdout);
