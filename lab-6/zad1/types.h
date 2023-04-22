@@ -3,12 +3,14 @@
 
 #define CLIENT_INIT 1
 
-#define COMMAND_LIST 2
-#define COMMAND_2ALL 3
-#define COMMAND_2ONE 4
-#define COMMAND_STOP 5
+#define COMMAND_LIST 3
+#define COMMAND_2ALL 4
+#define COMMAND_2ONE 5
+#define COMMAND_STOP 2
 
 #define CLIENT_RESPONSE 6
+
+#define SERVER_STOP 7
 
 struct init_msg {
 	long msg_type;
