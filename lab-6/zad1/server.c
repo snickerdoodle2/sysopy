@@ -4,7 +4,25 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <string.h>
 #include "types.h"
+
+#include <unistd.h>
+#include <errno.h>
+
+char * list_clients(int * clients) {
+	char * out = malloc(RESPONSE_LENGTH);
+	sprintf(out, "Aktywni klienci:\n");
+	for (int i = 0; i < MAX_CLIENTS; i++) {
+		if (clients[i] != 0) {
+			char * tmp = malloc(16);
+			sprintf(tmp, "%d\n", i);
+			strncat(out, tmp, strlen(tmp));
+		}
+	}
+
+	return out;
+}
 
 int run = 1;
 void handle(int signum) {
@@ -25,19 +43,52 @@ int main() {
 	signal(SIGINT, handle);
 
 	int * clients = calloc(MAX_CLIENTS, sizeof(int));
-	int cur_client = 0;
+	int cur_client_id = 0;
+	int active_clients = 0;
 
 	struct init_msg init_msg;
 	int msg_res;
 
-	while(run){
-		msg_res = msgrcv(server_queue, &init_msg, sizeof(int), CLIENT_INIT, IPC_NOWAIT | S_IRUSR | S_IWUSR);
-		if (msg_res != -1) {
-			printf("Id klienta: %d\n", init_msg.IPC_ID);
+	while(run || active_clients){
+		if (run){
+			msg_res = msgrcv(server_queue, &init_msg, sizeof(int), CLIENT_INIT, IPC_NOWAIT);
+			if (msg_res != -1) {
+				int client_queue = msgget(init_msg.IPC_ID, 0);
+				clients[cur_client_id] = client_queue;
+				active_clients++;
+				printf("Klient nr %d dolaczyl! Aktywni: %d/%d\n", cur_client_id, active_clients, MAX_CLIENTS);
+				fflush(stdout);
+				cur_client_id++;
+			}
+		}
+
+		for (int i = 0; i < MAX_CLIENTS; i++) {
+			if (clients[i] == 0) continue;
+			int client_queue = clients[i];
+			struct command_msg command;
+			msg_res = msgrcv(client_queue, &command, sizeof(command) - sizeof(long), 0, IPC_NOWAIT);
+			if (msg_res < 0) continue;
+			switch(command.msg_type) {
+				case COMMAND_STOP:
+					clients[i] = 0;
+					active_clients--;
+					printf("Klient nr %d nas opuscil :(. Aktywni: %d/%d\n", i, active_clients, MAX_CLIENTS);
+					fflush(stdout);
+					break;
+				case COMMAND_LIST:
+					sleep(0);
+					struct response_msg * res = malloc(sizeof(struct response_msg));
+					res->msg_type = CLIENT_RESPONSE;
+					strcpy(res->res, list_clients(clients));
+					msg_res = msgsnd(client_queue, res, RESPONSE_LENGTH, 0);
+					break;
+				default:
+					break;
+			}
 		}
 	}
 
 	free(clients);
-	msgctl(server_key, IPC_RMID, NULL);
+	msgctl(server_queue, IPC_RMID, NULL);
 	return 0;
 }
