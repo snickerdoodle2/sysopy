@@ -43,6 +43,8 @@ int main(int argc, char ** argv) {
 		printf("Nie udalo sie otworzyc pliku!");
 		return 1;
 	}
+	struct tms cpu_start, cpu_end;
+	clock_t r_start = times(&cpu_start);
 
 	double rect_width = atof(argv[1]);
 	int n = atoi(argv[2]);
@@ -59,8 +61,6 @@ int main(int argc, char ** argv) {
 		}
 	}
 
-	struct tms cpu_start, cpu_end;
-	clock_t r_start = times(&cpu_start);
 
 	double stop = 0.0;
 	int child_pid;
