@@ -12,9 +12,11 @@
 
 #define SERVER_STOP 7
 
+#define QUEUE_NAME "/test_queue_my"
+
 struct init_msg {
 	long msg_type;
-	int IPC_ID;
+	char IPC_ID[64];
 };
 
 struct command_msg {
