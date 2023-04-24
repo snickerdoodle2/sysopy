@@ -12,7 +12,7 @@
 
 #define SERVER_STOP 7
 
-#define QUEUE_NAME "/test_queue_my"
+#define QUEUE_NAME "/xxxdsddsadsadsa"
 
 struct init_msg {
 	long msg_type;

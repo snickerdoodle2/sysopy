@@ -31,7 +31,7 @@ int main() {
 
 	char * homedir = getenv("HOME");
 	key_t server_key = ftok(homedir, '0');
-	key_t client_key = ftok(homedir, rand());
+	key_t client_key = ftok(homedir, getpid());
 	client_queue = msgget(client_key, IPC_CREAT | 0666);
 
 
@@ -55,7 +55,7 @@ int main() {
 	if (pid == 0) {
 		struct response_msg response;
 		while (run) {
-			res = msgrcv(client_queue, &response, RESPONSE_LENGTH, 0, IPC_NOWAIT);
+			res = msgrcv(client_queue, &response, RESPONSE_LENGTH, 0, 0);
 			if (res > 0) {
 				if (response.msg_type == SERVER_STOP) {
 					kill(getppid(), SIGINT);
