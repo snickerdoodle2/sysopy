@@ -4,10 +4,14 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <mqueue.h>
+#include <signal.h>
 
 #include "types.h"
 
 int run = 1;
+void handle(int signum) {
+	run = 0;
+}
 
 int main()
 {
@@ -28,6 +32,8 @@ int main()
         perror("Server: mq_open()");
         exit(1);
     }
+
+	signal(SIGINT, handle);
 
 	mqd_t * clients = calloc(MAX_CLIENTS, sizeof(mqd_t));
 	int cur_client_id = 0;
@@ -53,6 +59,18 @@ int main()
 				fflush(stdout);
 				cur_client_id++;
 			}
+		}
+
+		for (int i = 0; i < MAX_CLIENTS; i++ ) {
+			mqd_t client_queue = clients[i];
+			if (client_queue == 0) continue;
+			if (!run) {
+				// send halt msg:
+			}
+			struct command_msg command_buffer;
+			ssize_t bytes_read = mq_receive(client_queue, (char *) &command_buffer, MAX_MSG_SIZE, NULL);
+			if (bytes_read == -1) continue;
+			printf("%s", command_buffer.msg);
 		}
     }
 
