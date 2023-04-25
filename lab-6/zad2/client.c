@@ -12,9 +12,11 @@
 
 int pid;
 mqd_t mq_client;
+char client_server_name[64];
 int run = 1;
 
 void handle(int signum) {
+	if (pid != 0) {
 		kill(pid, SIGINT);
 		struct command_msg command_message;
 		command_message.msg_type = COMMAND_STOP;
@@ -22,10 +24,11 @@ void handle(int signum) {
 			perror("xdd");
 			exit(1);
 		}
-
-		sleep(5);
-		run = 0;
-		exit(0);
+	}
+	sleep(1);
+	mq_close(mq_client);
+	mq_unlink(client_server_name);
+	exit(0);
 }
 
 
@@ -44,7 +47,6 @@ int main()
 	attr.mq_msgsize = MAX_MSG_SIZE;
 	attr.mq_curmsgs = 0;
 
-	char * client_server_name = malloc(64);
 	char * homedir = getenv("HOME");
 	key_t client_key = ftok(homedir, getpid());
 	sprintf(client_server_name, "/%d", client_key);
@@ -68,23 +70,46 @@ int main()
 		perror("Client: mq_send()");
 		exit(1);
 	}
-	
-	char command_buffer[1024];
-	while(run && fgets(command_buffer, 1024, stdin)) {
-		struct command_msg command_message;
-		char * command = strtok(command_buffer, " ");
-
-		command_message.msg_type = COMMAND_2ALL;
-		strcpy(command_message.msg, command);
-		if (mq_send(mq_client, (char *) &command_message, sizeof(struct command_msg), 0) == -1) {
-			perror("xdd");
-			exit(1);
-		}
-	}
 
 	mq_close(mq_server);
-	mq_close(mq_client);
-	mq_unlink(client_server_name);
-	free(client_server_name);
+	
+	char command_buffer[1024];
+	while(fgets(command_buffer, 1024, stdin)) {
+		struct command_msg command_message;
+		char * command_name = strtok(command_buffer, " ");
+
+		int send = 1;
+
+		if (strcmp(command_name, "LIST\n") == 0) {
+			command_message.msg_type = COMMAND_LIST;
+		} else if (strcmp(command_name, "2ALL") == 0) {
+			command_message.msg_type = COMMAND_2ALL;
+			char * message = strtok(NULL, "");
+			if (message != NULL) {
+				strcpy(command_message.msg, message);
+			}
+		} else if (strcmp(command_name, "2ONE") == 0) {
+			command_message.msg_type = COMMAND_2ONE;
+			command_message.recipient_id = atoi(strtok(NULL, " "));
+			char * message = strtok(NULL, "");
+			if (message != NULL) {
+				strcpy(command_message.msg, message);
+			}
+		} else if (strcmp(command_name, "STOP\n") == 0) {
+			raise(SIGINT);
+			send = 0;
+		} else {
+			printf("Nieznana komenda!\n");
+			send = 0;
+		}
+
+
+		if (send) {
+			if (mq_send(mq_client, (char *) &command_message, sizeof(struct command_msg), 0) == -1) {
+				perror("xdd");
+				exit(1);
+			}
+		}
+	}
 	return 0;
 }

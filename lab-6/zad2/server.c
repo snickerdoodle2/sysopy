@@ -5,12 +5,28 @@
 #include <sys/stat.h>
 #include <mqueue.h>
 #include <signal.h>
+#include <string.h>
 
 #include "types.h"
 
 int run = 1;
 void handle(int signum) {
 	run = 0;
+}
+
+char * list_clients(int * clients) {
+	char * out = malloc(RESPONSE_LENGTH);
+	sprintf(out, "Aktywni klienci:\n");
+	for (int i = 0; i < MAX_CLIENTS; i++) {
+		if (clients[i] != 0) {
+			char * tmp = malloc(16);
+			sprintf(tmp, "%d\n", i);
+			strncat(out, tmp, strlen(tmp));
+			free(tmp);
+		}
+	}
+
+	return out;
 }
 
 int main()
@@ -67,7 +83,34 @@ int main()
 			struct command_msg command_buffer;
 			ssize_t bytes_read = mq_receive(client_queue, (char *) &command_buffer, MAX_MSG_SIZE, NULL);
 			if (bytes_read == -1) continue;
-			printf("%ld", command_buffer.msg_type);
+			switch (command_buffer.msg_type) {
+				case COMMAND_STOP:
+					printf("stop\n");
+					break;
+				case COMMAND_LIST:
+					printf("list\n");
+#if 0
+					struct response_msg res;
+					res.msg_type = CLIENT_RESPONSE;
+					char * list = list_clients(clients);
+					strcpy(res.res, list);
+					free(list);
+					if (mq_send(client_queue, (char *) &res, sizeof(struct response_msg), 0) == -1) {
+						perror("xd");
+						exit(1);
+					}
+#endif
+					break;
+				case COMMAND_2ALL:
+					printf("%s", command_buffer.msg);
+					break;
+				case COMMAND_2ONE:
+					printf("%d\n", command_buffer.recipient_id);
+					printf("%s", command_buffer.msg);
+					break;
+				default:
+					break;
+			}
 			fflush(stdout);
 		}
     }
@@ -79,3 +122,4 @@ int main()
 
     return 0;
 }
+
