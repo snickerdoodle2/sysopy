@@ -7,8 +7,7 @@
 
 #include "types.h"
 
-#define MAX_MSG_SIZE 256
-#define MAX_MSG_NUM 10
+int run = 1;
 
 int main()
 {
@@ -22,6 +21,7 @@ int main()
     attr.mq_curmsgs = 0;
 
     // Create the server message queue
+	mq_unlink(QUEUE_NAME);
     mq_server = mq_open(QUEUE_NAME, O_CREAT | O_RDONLY | O_NONBLOCK, 0666, &attr);
     if(mq_server == (mqd_t) -1)
     {
@@ -29,22 +29,37 @@ int main()
         exit(1);
     }
 
-    char buffer[MAX_MSG_SIZE];
-    unsigned int prio;
+	mqd_t * clients = calloc(MAX_CLIENTS, sizeof(mqd_t));
+	int cur_client_id = 0;
+	int active_clients = 0;
 
-    while(1)
+    struct init_msg init_buffer;
+
+
+    while(run)
     {
-        ssize_t bytes_read = mq_receive(mq_server, buffer, MAX_MSG_SIZE, &prio);
-        if(bytes_read != -1)
-        {
-        	buffer[bytes_read] = '\0';
-        	printf("Server received: %s\n", buffer);
-        }
+		if (run) {
+			ssize_t bytes_read = mq_receive(mq_server, (char *) &init_buffer, MAX_MSG_SIZE, NULL);
+			if(bytes_read != -1)
+			{
+				mqd_t client_queue = mq_open(QUEUE_NAME, O_WRONLY , 0666, NULL);
+				if (client_queue == (mqd_t) -1) {
+					perror("Server - klient - mq_open()");
+					exit(1);
+				}
+				clients[cur_client_id] = client_queue;
+				active_clients++;
+				printf("Klient nr %d dolaczyl! Aktywni: %d\n", cur_client_id, active_clients);
+				fflush(stdout);
+				cur_client_id++;
+			}
+		}
     }
 
     // Close the message queue
     mq_close(mq_server);
     mq_unlink(QUEUE_NAME);
+	free(clients);
 
     return 0;
 }

@@ -1,6 +1,3 @@
-#define MAX_CLIENTS 256
-#define RESPONSE_LENGTH 512
-
 #define CLIENT_INIT 1
 
 #define COMMAND_LIST 3
@@ -12,7 +9,15 @@
 
 #define SERVER_STOP 7
 
-#define QUEUE_NAME "/xxxdsddsadsadsa"
+
+
+#define MAX_CLIENTS 256
+#define RESPONSE_LENGTH 512
+
+#define QUEUE_NAME "/server_queue"
+#define MAX_MSG_SIZE 512
+#define MAX_MSG_NUM 10
+
 
 struct init_msg {
 	long msg_type;
