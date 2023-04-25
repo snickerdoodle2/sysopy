@@ -30,7 +30,3 @@ struct command_msg {
 	char msg[RESPONSE_LENGTH];
 };
 
-struct response_msg {
-	long msg_type;
-	char res[RESPONSE_LENGTH];
-};

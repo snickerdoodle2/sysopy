@@ -24,10 +24,10 @@ void handle(int signum) {
 			perror("xdd");
 			exit(1);
 		}
+		sleep(2);
+		mq_close(mq_client);
+		mq_unlink(client_server_name);
 	}
-	sleep(1);
-	mq_close(mq_client);
-	mq_unlink(client_server_name);
 	exit(0);
 }
 
@@ -53,7 +53,7 @@ int main()
 
 	// Create the server message queue
 	mq_unlink(client_server_name);
-	mq_client = mq_open(client_server_name, O_CREAT | O_RDWR , 0666, &attr);
+	mq_client = mq_open(client_server_name, O_CREAT | O_RDWR | O_NONBLOCK, 0666, &attr);
 	if (mq_client == (mqd_t) -1) {
 		perror("Client: mq_open()");
 		exit(1);
@@ -76,22 +76,26 @@ int main()
 	pid = fork();
 
 	if (pid == 0) {
-		struct response_msg response;
+		struct command_msg response;
 		unsigned int prio;
 		while (1) {
-//			ssize_t bytes_read = -1;
 			ssize_t bytes_read = mq_receive(mq_client, (char *) &response, MAX_MSG_SIZE, &prio);
 			if (bytes_read != -1) {
 				if (prio == 0) {
-					fflush(stdout);
-					mq_send(mq_client, (char *) &response, MAX_MSG_SIZE, 0);
+					struct command_msg response_copy;
+					response_copy.msg_type = response.msg_type;
+					response_copy.recipient_id = response.recipient_id;
+					strcpy(response_copy.msg, response.msg);
+					mq_send(mq_client, (char *) &response_copy, MAX_MSG_SIZE, 0);
 				} else {
-					printf("%ld\n", bytes_read);
-					fflush(stdout);
+					if (response.msg_type == SERVER_STOP) kill(getppid(), SIGINT);
+					else {
+						printf("%s", response.msg);
+						fflush(stdout);
+					}
+				}
 				}
 			}
-			sleep(1);
-		}
 	} else {
 		char command_buffer[1024];
 		while(fgets(command_buffer, 1024, stdin)) {
