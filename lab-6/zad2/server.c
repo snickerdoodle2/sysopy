@@ -29,6 +29,7 @@ char * list_clients(int * clients) {
 	return out;
 }
 
+
 int main()
 {
     mqd_t mq_server;
@@ -89,7 +90,6 @@ int main()
 					break;
 				case COMMAND_LIST:
 					printf("list\n");
-#if 0
 					struct response_msg res;
 					res.msg_type = CLIENT_RESPONSE;
 					char * list = list_clients(clients);
@@ -99,7 +99,6 @@ int main()
 						perror("xd");
 						exit(1);
 					}
-#endif
 					break;
 				case COMMAND_2ALL:
 					printf("%s", command_buffer.msg);
@@ -111,7 +110,7 @@ int main()
 				default:
 					break;
 			}
-			fflush(stdout);
+			printf("essa\n");
 		}
     }
 

@@ -72,42 +72,62 @@ int main()
 	}
 
 	mq_close(mq_server);
-	
-	char command_buffer[1024];
-	while(fgets(command_buffer, 1024, stdin)) {
-		struct command_msg command_message;
-		char * command_name = strtok(command_buffer, " ");
 
-		int send = 1;
+	pid = fork();
 
-		if (strcmp(command_name, "LIST\n") == 0) {
-			command_message.msg_type = COMMAND_LIST;
-		} else if (strcmp(command_name, "2ALL") == 0) {
-			command_message.msg_type = COMMAND_2ALL;
-			char * message = strtok(NULL, "");
-			if (message != NULL) {
-				strcpy(command_message.msg, message);
+	if (pid == 0) {
+		struct response_msg response;
+		unsigned int prio;
+		while (1) {
+//			ssize_t bytes_read = -1;
+			ssize_t bytes_read = mq_receive(mq_client, (char *) &response, MAX_MSG_SIZE, &prio);
+			if (bytes_read != -1) {
+				if (prio == 0) {
+					fflush(stdout);
+					mq_send(mq_client, (char *) &response, MAX_MSG_SIZE, 0);
+				} else {
+					printf("%ld\n", bytes_read);
+					fflush(stdout);
+				}
 			}
-		} else if (strcmp(command_name, "2ONE") == 0) {
-			command_message.msg_type = COMMAND_2ONE;
-			command_message.recipient_id = atoi(strtok(NULL, " "));
-			char * message = strtok(NULL, "");
-			if (message != NULL) {
-				strcpy(command_message.msg, message);
-			}
-		} else if (strcmp(command_name, "STOP\n") == 0) {
-			raise(SIGINT);
-			send = 0;
-		} else {
-			printf("Nieznana komenda!\n");
-			send = 0;
+			sleep(1);
 		}
+	} else {
+		char command_buffer[1024];
+		while(fgets(command_buffer, 1024, stdin)) {
+			char * command_name = strtok(command_buffer, " ");
+			struct command_msg command_message;
+			int send = 1;
+
+			if (strcmp(command_name, "LIST\n") == 0) {
+				command_message.msg_type = COMMAND_LIST;
+			} else if (strcmp(command_name, "2ALL") == 0) {
+				command_message.msg_type = COMMAND_2ALL;
+				char * message = strtok(NULL, "");
+				if (message != NULL) {
+					strcpy(command_message.msg, message);
+				}
+			} else if (strcmp(command_name, "2ONE") == 0) {
+				command_message.msg_type = COMMAND_2ONE;
+				command_message.recipient_id = atoi(strtok(NULL, " "));
+				char * message = strtok(NULL, "");
+				if (message != NULL) {
+					strcpy(command_message.msg, message);
+				}
+			} else if (strcmp(command_name, "STOP\n") == 0) {
+				raise(SIGINT);
+				send = 0;
+			} else {
+				printf("Nieznana komenda!\n");
+				send = 0;
+			}
 
 
-		if (send) {
-			if (mq_send(mq_client, (char *) &command_message, sizeof(struct command_msg), 0) == -1) {
-				perror("xdd");
-				exit(1);
+			if (send) {
+				if (mq_send(mq_client, (char *) &command_message, sizeof(struct command_msg), 0) == -1) {
+					perror("xdd");
+					exit(1);
+				}
 			}
 		}
 	}
