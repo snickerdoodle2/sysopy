@@ -42,13 +42,13 @@ int main()
     struct init_msg init_buffer;
 
 
-    while(run || active_clients)
+    while(run) 
     {
 		if (run) {
 			ssize_t bytes_read = mq_receive(mq_server, (char *) &init_buffer, MAX_MSG_SIZE, NULL);
 			if(bytes_read != -1)
 			{
-				mqd_t client_queue = mq_open(QUEUE_NAME, O_WRONLY , 0666, NULL);
+				mqd_t client_queue = mq_open(init_buffer.IPC_ID, O_RDWR | O_NONBLOCK, 0666, NULL);
 				if (client_queue == (mqd_t) -1) {
 					perror("Server - klient - mq_open()");
 					exit(1);
@@ -64,21 +64,12 @@ int main()
 		for (int i = 0; i < MAX_CLIENTS; i++ ) {
 			mqd_t client_queue = clients[i];
 			if (client_queue == 0) continue;
-			if (!run) {
-				struct response_msg halt_msg;
-				halt_msg.msg_type = SERVER_STOP;
-				if(mq_send(client_queue, (char *) &halt_msg, sizeof(float), 0) == -1) {
-					perror("Server - halt: mq_send()");
-					exit(1);
-				}
-			}
 			struct command_msg command_buffer;
 			ssize_t bytes_read = mq_receive(client_queue, (char *) &command_buffer, MAX_MSG_SIZE, NULL);
-			printf("%ld\n", bytes_read);
 			if (bytes_read == -1) continue;
-			printf("%s", command_buffer.msg);
+			printf("%ld", command_buffer.msg_type);
+			fflush(stdout);
 		}
-		sleep(1);
     }
 
     // Close the message queue
