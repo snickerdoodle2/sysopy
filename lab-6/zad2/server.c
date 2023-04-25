@@ -42,7 +42,7 @@ int main()
     struct init_msg init_buffer;
 
 
-    while(run)
+    while(run || active_clients)
     {
 		if (run) {
 			ssize_t bytes_read = mq_receive(mq_server, (char *) &init_buffer, MAX_MSG_SIZE, NULL);
@@ -65,13 +65,20 @@ int main()
 			mqd_t client_queue = clients[i];
 			if (client_queue == 0) continue;
 			if (!run) {
-				// send halt msg:
+				struct response_msg halt_msg;
+				halt_msg.msg_type = SERVER_STOP;
+				if(mq_send(client_queue, (char *) &halt_msg, sizeof(float), 0) == -1) {
+					perror("Server - halt: mq_send()");
+					exit(1);
+				}
 			}
 			struct command_msg command_buffer;
 			ssize_t bytes_read = mq_receive(client_queue, (char *) &command_buffer, MAX_MSG_SIZE, NULL);
+			printf("%ld\n", bytes_read);
 			if (bytes_read == -1) continue;
 			printf("%s", command_buffer.msg);
 		}
+		sleep(1);
     }
 
     // Close the message queue

@@ -15,7 +15,7 @@
 #define RESPONSE_LENGTH 512
 
 #define QUEUE_NAME "/server_queue"
-#define MAX_MSG_SIZE 512
+#define MAX_MSG_SIZE 1024
 #define MAX_MSG_NUM 10
 
 
