@@ -2,9 +2,14 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ncurses.h>
+#include <pthread.h>
 
 const int grid_width = 30;
 const int grid_height = 30;
+
+char * local_grid;
+
+pthread_t ** grid_threads;
 
 char *create_grid()
 {
@@ -14,6 +19,22 @@ char *create_grid()
 void destroy_grid(char *grid)
 {
     free(grid);
+}
+
+pthread_t * * create_threads() {
+    pthread_t * * tmp = calloc(grid_width * grid_height, sizeof(pthread_t *));
+    for (int i = 0; i < grid_height; ++i)
+    {
+        for (int j = 0; j < grid_width; ++j)
+        {
+            pthread_create(tmp[i * grid_width + j], NULL, NULL, NULL);
+        }
+    }   
+    return tmp;
+}
+
+void destroy_threads(pthread_t * threads) {
+    free(threads);
 }
 
 void draw_grid(char *grid)
@@ -45,7 +66,7 @@ void init_grid(char *grid)
         grid[i] = rand() % 2 == 0;
 }
 
-bool is_alive(int row, int col, char *grid)
+bool is_alive(int row, int col)
 {
     int count = 0;
     for (int i = -1; i <= 1; i++)
@@ -62,14 +83,14 @@ bool is_alive(int row, int col, char *grid)
             {
                 continue;
             }
-            if (grid[grid_width * r + c])
+            if (local_grid[grid_width * r + c])
             {
                 count++;
             }
         }
     }
 
-    if (grid[row * grid_width + col])
+    if (local_grid[row * grid_width + col])
     {
         if (count == 2 || count == 3)
             return true;
@@ -87,11 +108,12 @@ bool is_alive(int row, int col, char *grid)
 
 void update_grid(char *src, char *dst)
 {
+    local_grid = src;
     for (int i = 0; i < grid_height; ++i)
     {
         for (int j = 0; j < grid_width; ++j)
         {
-            dst[i * grid_width + j] = is_alive(i, j, src);
+            dst[i * grid_width + j] = is_alive(i, j);
         }
     }
 }
