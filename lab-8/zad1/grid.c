@@ -1,15 +1,23 @@
 #include "grid.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <ncurses.h>
 #include <pthread.h>
+#include <signal.h>
+#include <unistd.h>
+
+typedef struct {
+    int x;
+    int y;
+} coords;
 
 const int grid_width = 30;
 const int grid_height = 30;
 
 char * local_grid;
 
-pthread_t ** grid_threads;
+pthread_t * grid_threads;
 
 char *create_grid()
 {
@@ -21,20 +29,37 @@ void destroy_grid(char *grid)
     free(grid);
 }
 
-pthread_t * * create_threads() {
-    pthread_t * * tmp = calloc(grid_width * grid_height, sizeof(pthread_t *));
+void signal_handler(int signum) {}
+
+void * thread_handler(void * args) {
+    coords my_coords = *(coords *) args;
+    printf("x: %d y: %d\n", my_coords.x, my_coords.y);
+    signal(SIGUSR1, signal_handler);
+    while (1) {
+        pause();
+        printf("x: %d y: %d\n", my_coords.x, my_coords.y);
+        fflush(stdout);
+    }
+}
+
+void create_threads() {
+    grid_threads = calloc(grid_width * grid_height, sizeof(pthread_t));
+    coords * tmp = calloc(grid_width * grid_height, sizeof(coords));
     for (int i = 0; i < grid_height; ++i)
     {
         for (int j = 0; j < grid_width; ++j)
         {
-            pthread_create(tmp[i * grid_width + j], NULL, NULL, NULL);
+            tmp[i * grid_width + j].x = i;
+            tmp[i * grid_width + j].y = j;
+            pthread_create(&grid_threads[i * grid_width + j], NULL, &thread_handler, (void *) &tmp[i * grid_width + j]);
         }
     }   
-    return tmp;
+    sleep(1);
+    free(tmp);
 }
 
-void destroy_threads(pthread_t * threads) {
-    free(threads);
+void destroy_threads() {
+    free(grid_threads);
 }
 
 void draw_grid(char *grid)
@@ -108,6 +133,13 @@ bool is_alive(int row, int col)
 
 void update_grid(char *src, char *dst)
 {
+    for (int i = 0; i < grid_height; ++i)
+    {
+        for (int j = 0; j < grid_width; ++j)
+        {
+            pthread_kill(grid_threads[i * grid_width + j], SIGUSR1);
+        }
+    }   
     local_grid = src;
     for (int i = 0; i < grid_height; ++i)
     {

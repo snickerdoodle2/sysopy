@@ -11,21 +11,25 @@ int main()
 {
 	srand(time(NULL));
 	setlocale(LC_CTYPE, "");
-	initscr(); // Start curses mode
+//	initscr(); // Start curses mode
 
 	char *foreground = create_grid();
 	char *background = create_grid();
 	char *tmp;
 
-	init_grid(foreground);
+	//init_grid(foreground);
+    create_threads();
 
-	while (true)
+    printf("siema\n");
+    sleep(1);
+	while (false)
 	{
-		draw_grid(foreground);
-		usleep(100 * 1000);
+//		draw_grid(foreground);
+		usleep(1000 * 1000);
 
 		// Step simulation
 		update_grid(foreground, background);
+        break;
 		tmp = foreground;
 		foreground = background;
 		background = tmp;
@@ -34,6 +38,7 @@ int main()
 	endwin(); // End curses mode
 	destroy_grid(foreground);
 	destroy_grid(background);
+    destroy_threads();
 
 	return 0;
 }
