@@ -15,7 +15,8 @@ typedef struct {
 const int grid_width = 30;
 const int grid_height = 30;
 
-char * local_grid;
+char * local_src_grid;
+char * local_dst_grid;
 
 pthread_t * grid_threads;
 
@@ -33,12 +34,12 @@ void signal_handler(int signum) {}
 
 void * thread_handler(void * args) {
     coords my_coords = *(coords *) args;
-    printf("x: %d y: %d\n", my_coords.x, my_coords.y);
+    int x = my_coords.x;
+    int y = my_coords.y;
     signal(SIGUSR1, signal_handler);
     while (1) {
         pause();
-        printf("x: %d y: %d\n", my_coords.x, my_coords.y);
-        fflush(stdout);
+        local_dst_grid[x * grid_width + y] = is_alive(x, y);
     }
 }
 
@@ -108,14 +109,14 @@ bool is_alive(int row, int col)
             {
                 continue;
             }
-            if (local_grid[grid_width * r + c])
+            if (local_src_grid[grid_width * r + c])
             {
                 count++;
             }
         }
     }
 
-    if (local_grid[row * grid_width + col])
+    if (local_src_grid[row * grid_width + col])
     {
         if (count == 2 || count == 3)
             return true;
@@ -133,6 +134,9 @@ bool is_alive(int row, int col)
 
 void update_grid(char *src, char *dst)
 {
+    local_src_grid = src;
+    local_dst_grid = dst;
+
     for (int i = 0; i < grid_height; ++i)
     {
         for (int j = 0; j < grid_width; ++j)
@@ -140,12 +144,4 @@ void update_grid(char *src, char *dst)
             pthread_kill(grid_threads[i * grid_width + j], SIGUSR1);
         }
     }   
-    local_grid = src;
-    for (int i = 0; i < grid_height; ++i)
-    {
-        for (int j = 0; j < grid_width; ++j)
-        {
-            dst[i * grid_width + j] = is_alive(i, j);
-        }
-    }
 }
