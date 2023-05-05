@@ -1,5 +1,5 @@
-1. Kolejka jako poczekalnia
-2. Kazde miejsce w poczekalni to semafor.
-2. Klient dołącza -> dodaje się do kolejki (idk co dodaje jeszcze)
-3. pamięć wspólna == 0 <- jest wolne krzesło
-4. Jest wolne krzesło -> fryzjer budzi klienta, ustawia semafor krzesla na 1 a klient spi poki fryzjer nie skonczy
+1. Krzesla i poczekalnia to kolejki FIFO
+1. Poczekalnia oprocz semafora ma rowniez pamiec wspolna
+1. Klient po dolaczeniu sprawdza czy jest miejsce w poczekalni i jeśli jest to do niej dołącza, ustawia pamiec wspolna poczekalni na rodzaj fryzury i czeka az semafor w tej poczekalni jest rowny 0
+1. Fryzjer w wolnej chwili sprawdza ilosc klientow w poczekalni, wolne krzeslo, jesli jest wolne to wyciaga rodzaj fryzury i ustawia pamiec wspolna miejsca w poczekalni na id fotelu, ustawia semafor krzesla na 1 i budzi klienta
+1. Klient dolacza do semafora krzesla, czeka na koniec strzyzenia i sie konczy 
