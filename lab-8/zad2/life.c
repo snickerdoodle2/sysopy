@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
 	while (true)
 	{
 		draw_grid(foreground);
-		usleep(1000 * 1000);
+		usleep(500 * 1000);
 
 		// Step simulation
 		update_grid(foreground, background);
