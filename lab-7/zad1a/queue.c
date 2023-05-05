@@ -24,9 +24,9 @@ void push(char *queue, char item) {
 }
 
 int full(char *queue) {
-    return strlen(queue) + 1 == QUEUE_SIZE;
+    return (strlen(queue) + 1 == QUEUE_SIZE);
 }
 
 int empty(char *queue) {
-    return strlen(queue) == 0;
+    return (strlen(queue) == 0);
 }
