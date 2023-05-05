@@ -49,3 +49,33 @@ void destroy_sema(char *name) {
     Sema sema_id = open_sema(name);
     semctl(sema_id, 0, IPC_RMID);
 }
+
+void increment(Sema sema_id){
+    struct sembuf ops = { 0, 1, 0 };
+    if (semop(sema_id, &ops, 1)) {
+        perror("increment");
+    }
+}
+
+void wait(Sema sema_id) {
+    struct sembuf ops = { 0, 0, 0 };
+    if (semop(sema_id, &ops, 1)) {
+        perror("wait");
+    }
+}
+
+void decrement(Sema sema_id){
+    struct sembuf ops = { 0, -1, 0 };
+    if (semop(sema_id, &ops, 1)) {
+        perror("increment");
+    }
+}
+
+
+
+
+
+
+
+
+

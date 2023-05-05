@@ -12,3 +12,7 @@ Sema open_sema(char * name);
 
 void close_sema(Sema sema_id);
 void destroy_sema(char * name);
+
+void increment(Sema sema_id);
+void decrement(Sema sema_id);
+void wait(Sema sema_id);
