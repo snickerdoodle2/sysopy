@@ -1,8 +1,10 @@
+LIBS=sema.c
+
 all:
 	make clean
-	gcc -Wall -o main lib.c main.c
-	gcc -Wall -o client lib.c client.c
-	gcc -Wall -o barber lib.c barber.c
+	gcc -Wall -o main $(LIBS) main.c
+	gcc -Wall -o client $(LIBS) client.c
+	gcc -Wall -o barber $(LIBS) barber.c
 
 clean:
 	rm -f client barber main

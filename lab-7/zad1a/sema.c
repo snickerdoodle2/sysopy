@@ -3,24 +3,26 @@
 #include <sys/ipc.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "lib.h"
+#include "sema.h"
 
-Sema create_sema(char *name, int initial_value) {
+Sema create_sema(char *name, int amount, int initial_value) {
     key_t key = ftok(getenv("HOME"), name[0]);
     if (key == -1) {
         perror("ftok: ");
         return 0;
     }
 
-    Sema sema_id = semget(key, 1, 0664 | IPC_CREAT);
+    Sema sema_id = semget(key, amount, 0664 | IPC_CREAT);
     if (sema_id == -1) {
         perror("semget: ");
         return 0;
     }
 
-    if (semctl(sema_id, 0, SETVAL, initial_value) == -1) {
-        perror("semctl: ");
-        return 0;
+    for (int i = 0; i < amount; i++) {
+        if (semctl(sema_id, i, SETVAL, initial_value) == -1) {
+            perror("semctl: ");
+            return 0;
+        }
     }
 
     return sema_id;
@@ -50,32 +52,23 @@ void destroy_sema(char *name) {
     semctl(sema_id, 0, IPC_RMID);
 }
 
-void increment(Sema sema_id){
-    struct sembuf ops = { 0, 1, 0 };
+void increment(Sema sema_id, int room_id){
+    struct sembuf ops = { room_id, 1, 0 };
     if (semop(sema_id, &ops, 1)) {
         perror("increment");
     }
 }
 
-void wait(Sema sema_id) {
-    struct sembuf ops = { 0, 0, 0 };
+void wait(Sema sema_id, int room_id) {
+    struct sembuf ops = { room_id, 0, 0 };
     if (semop(sema_id, &ops, 1)) {
         perror("wait");
     }
 }
 
-void decrement(Sema sema_id){
-    struct sembuf ops = { 0, -1, 0 };
+void decrement(Sema sema_id, int room_id){
+    struct sembuf ops = { room_id, -1, 0 };
     if (semop(sema_id, &ops, 1)) {
         perror("increment");
     }
 }
-
-
-
-
-
-
-
-
-

@@ -1,12 +1,12 @@
-#include "lib.h"
+#include "sema.h"
 #include <stdio.h>
 
 int main() {
     destroy_sema("siema");
-    Sema sema = create_sema("siema", 0);
+    Sema sema = create_sema("siema", 1, 0);
     printf("Przed\n");
-    increment(sema);
-    wait(sema);
+    increment(sema, 0);
+    wait(sema, 0);
     printf("Po\n");
     return 0;
 }

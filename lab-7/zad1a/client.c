@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <unistd.h>
-#include "lib.h"
+#include "sema.h"
 
 int main() {
     Sema sema = open_sema("siema");
     printf("Przed\n");
     sleep(1);
-    decrement(sema);
+    decrement(sema, 0);
     printf("Po\n");
     return 0;
 }
