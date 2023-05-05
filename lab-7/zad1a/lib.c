@@ -40,3 +40,12 @@ Sema open_sema(char *name) {
     }
     return sema_id;
 }
+
+void close_sema(Sema sema_id) {
+    return;
+}
+
+void destroy_sema(char *name) {
+    Sema sema_id = open_sema(name);
+    semctl(sema_id, 0, IPC_RMID);
+}
