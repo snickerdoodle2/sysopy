@@ -4,3 +4,5 @@
 #define BARBER_AMOUNT 6;
 #define CHAIR_AMOUNT 5;
 #define LOBBY_CAP 3;
+
+#define QUEUE_SIZE 1024;
