@@ -1,4 +1,4 @@
-LIBS=sema.c
+LIBS=sema.c shared.c
 
 all:
 	make clean
