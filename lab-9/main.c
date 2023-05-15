@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -17,6 +18,8 @@ pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
 pthread_cond_t elfs_cond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t reindeers_cond = PTHREAD_COND_INITIALIZER;
 
+pthread_t waiting_elfs_tab[3];
+
 pthread_t reindeers[REINDEER_AMOUNT];
 pthread_t elfs[ELF_AMOUNT];
 pthread_t santa;
@@ -34,27 +37,32 @@ void * reindeer_handler() {
         fflush(stdout);
         if (reindeers_home == REINDEER_AMOUNT) {
             printf("Renifer: wybudzam Mikolaja (%ld)\n", pthread_self());
+            fflush(stdout);
             pthread_cond_broadcast(&condition);
         }
         while(reindeers_wait){
             pthread_cond_wait(&reindeers_cond, &mutex);
         }
-        printf("Pobudka\n");
-        fflush(stdout);
         pthread_mutex_unlock(&mutex);
     }
     return NULL;
 }
 
+void sighandler(){}
+
 void * elf_handler() {
+    signal(SIGUSR1, sighandler);
     unsigned int state;
     state = time(NULL) ^ pthread_self();
     while (1) {
+        int waiting = 0;
         int time_to_sleep = rand_r(&state) % 4 + 2;
         sleep(time_to_sleep);
         pthread_mutex_lock(&mutex);
         if (waiting_elfs < 3) {
             if (waiting_elfs == 0) elfs_wait = 1;
+            waiting = 1;
+            waiting_elfs_tab[waiting_elfs] = pthread_self();
             waiting_elfs++;
             printf("Elf: czeka %d elfow na Mikolaja (%ld)\n", waiting_elfs, pthread_self());
             fflush(stdout);
@@ -63,13 +71,16 @@ void * elf_handler() {
                 fflush(stdout);
                 pthread_cond_broadcast(&condition);
             }
-            while(elfs_wait){
-                pthread_cond_wait(&elfs_cond, &mutex);
-            }
         } else {
             printf("Elf: samodzielnie rozwiazuje problem (%ld)\n", pthread_self());
+            fflush(stdout);
         }
         pthread_mutex_unlock(&mutex);
+        if (waiting) {
+            pause();
+            printf("Elf: Mikolaj rozwiazal moj problem! (%ld)\n", pthread_self());
+            fflush(stdout);
+        }
     }
     return NULL;
 }
@@ -79,20 +90,30 @@ void * santa_handler() {
     unsigned int state;
     state = time(NULL) ^ pthread_self();
     while (gifts_amount < 3) {
+        printf("Mikolaj: Zasypiam\n");
+        fflush(stdout);
         pthread_mutex_lock(&mutex);
         while(reindeers_home < 9 && waiting_elfs < 3) {
             pthread_cond_wait(&condition, &mutex);
         }
+        printf("Mikolaj: Budze sie\n");
+        fflush(stdout);
 
         if (waiting_elfs == 3) {
-            int repair_time = rand_r(&state) % 2 + 1;
-            sleep(repair_time);
+            printf("Mikolaj: rozwiazuje problemy elfow: %ld, %ld, %ld\n", waiting_elfs_tab[0], waiting_elfs_tab[1], waiting_elfs_tab[2]);
+            fflush(stdout);
             elfs_wait = 0;
+            for (int i = 0; i < 3; i++){
+                int repair_time = rand_r(&state) % 2 + 1;
+                sleep(repair_time);
+                pthread_kill(waiting_elfs_tab[i], SIGUSR1);
+            }
             waiting_elfs = 0;
-            pthread_cond_broadcast(&elfs_cond);
         }
 
         if (reindeers_home == 9) {
+            printf("Mikolaj: dostarczam zabawki\n");
+            fflush(stdout);
             int gift_time = rand_r(&state) % 3 + 2;
             sleep(gift_time);
             gifts_amount++;
