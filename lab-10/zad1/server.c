@@ -56,12 +56,43 @@ struct client * init_client(int client_fd){
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (!clients[i].taken) {
             clients[i].taken = true;
-            clients[i].active = true;
+            clients[i].active = false;
             clients[i].fd = client_fd;
             return &clients[i];
         }
     }
     return NULL;
+}
+
+void send_message(struct client * client, int msg_type, char * msg_body) {
+    struct message res;
+    res.type = msg_type;
+    strcpy(res.msg_body, msg_body);
+    write(client->fd, &res, sizeof(res));
+}
+
+void handle_client_message(struct client * client) {
+    if (!client->active) {
+        int bytes_read = read(client->fd, client->nickname, 127);
+        client->nickname[bytes_read] = 0;
+        client->active = true;
+        return;
+    }
+
+    struct message msg;
+    read(client->fd, &msg, sizeof(msg));
+
+    switch (msg.type) {
+        case MSG_2ALL:
+            for (int i = 0; i < MAX_CLIENTS; i++) {
+                if (clients[i].taken) {
+                    printf("wysylam\n");
+                    fflush(stdout);
+                    send_message(client, MSG_RESP, msg.msg_body);
+                }
+            }
+            break;
+    }
 }
 
 int main(int argc, char ** argv) {
@@ -114,7 +145,12 @@ int main(int argc, char ** argv) {
                 struct event_data * event_data = malloc(sizeof(struct event_data *));
                 event_data->type = CLIENT_EVENT;
                 event_data->payload.client = client;
-                
+                struct epoll_event event;
+                event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+                event.data.ptr = event_data;
+                epoll_ctl(epoll, EPOLL_CTL_ADD, client_fd, &event);
+            } else if (data->type == CLIENT_EVENT) {
+                handle_client_message(data->payload.client);
             }
         }
     }
