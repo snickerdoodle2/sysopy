@@ -5,6 +5,7 @@
 #define MSG_2ONE 2
 #define MSG_LIST 3
 #define MSG_STOP 4
+#define MSG_FULL 5
 
 struct message {
     int type;
