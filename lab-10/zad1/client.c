@@ -85,11 +85,6 @@ void handle_stdin(void) {
     }
 }
 
-void signal_handler(int _) {
-    close(sock);
-    exit(0);
-}
-
 int main(int argc, char ** argv) {
 #if 1
     if (argc == 5 && strcmp(argv[2], "web") == 0) sock = connect_web(argv[3], atoi(argv[4]));
@@ -100,7 +95,6 @@ int main(int argc, char ** argv) {
     }
 #endif
 
-    signal(SIGINT, signal_handler);
     int epoll = epoll_create1(0);
 
     struct epoll_event stdin_event; 
@@ -116,7 +110,7 @@ int main(int argc, char ** argv) {
     epoll_ctl(epoll, EPOLL_CTL_ADD, sock, &sock_event);
 
     char * nickname = argv[1];
-    int _ = write(sock, nickname, strlen(nickname));
+    write(sock, nickname, strlen(nickname));
 
     struct epoll_event events[16];
 
@@ -128,8 +122,20 @@ int main(int argc, char ** argv) {
             } else if (events[i].data.fd == sock) {
                 struct message msg;
                 read(sock, &msg, sizeof(msg));
-                printf("%s\n", msg.msg_body);
-                fflush(stdout);
+                switch (msg.type) {
+                    case MSG_RESP:
+                        printf("%s\n", msg.msg_body);
+                        break;
+                    case MSG_PING: {
+                        struct message message;
+                        message.type = MSG_PING;
+                        write(sock, &message, sizeof(message));
+                        break;
+                    }
+                    case MSG_FULL:
+                        raise(SIGINT);
+                        break;
+                }
             }
         }
     }

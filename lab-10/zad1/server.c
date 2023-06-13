@@ -1,11 +1,8 @@
 #include "shared.h"
 #include "message.h"
-#include <stdio.h>
-#include <string.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <stdbool.h>
+#include <pthread.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #define MAX_CLIENTS 16
@@ -17,6 +14,7 @@ struct client {
     char nickname[128];
     bool active;
     bool taken;
+    bool responding;
     int fd;
 };
 
@@ -31,6 +29,8 @@ struct event_data {
 };
 
 int epoll;
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void init_socket(int socket, void * addr, int addr_size) {
     if (bind(socket, (struct sockaddr *) addr, addr_size) < 0) {
@@ -55,12 +55,15 @@ void init_socket(int socket, void * addr, int addr_size) {
 struct client * init_client(int client_fd){
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (!clients[i].taken) {
+            pthread_mutex_lock(&mutex);
             clients[i].taken = true;
             clients[i].active = false;
             clients[i].fd = client_fd;
+            pthread_mutex_unlock(&mutex);
             return &clients[i];
         }
     }
+    
     return NULL;
 }
 
@@ -71,11 +74,27 @@ void send_message(struct client * client, int msg_type, char * msg_body) {
     write(client->fd, &res, sizeof(res));
 }
 
+char * list_clients(void) {
+	char * out = malloc(MSG_LEN);
+	sprintf(out, "Aktywni klienci:\n");
+	for (int i = 0; i < MAX_CLIENTS; i++) {
+		if (clients[i].active) {
+			char * tmp = malloc(MSG_LEN + 3);
+			sprintf(tmp, "%s\n", clients[i].nickname);
+			strncat(out, tmp, strlen(tmp));
+			free(tmp);
+		}
+	}
+
+	return out;
+}
+
 void handle_client_message(struct client * client) {
     if (!client->active) {
         int bytes_read = read(client->fd, client->nickname, 127);
         client->nickname[bytes_read] = 0;
         client->active = true;
+        client->responding = true;
         return;
     }
 
@@ -83,16 +102,75 @@ void handle_client_message(struct client * client) {
     read(client->fd, &msg, sizeof(msg));
 
     switch (msg.type) {
-        case MSG_2ALL:
+        case MSG_PING: {
+            pthread_mutex_lock(&mutex);
+            client->responding = true;
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+        case MSG_2ONE: {
             for (int i = 0; i < MAX_CLIENTS; i++) {
-                if (clients[i].taken) {
-                    printf("wysylam\n");
-                    fflush(stdout);
-                    send_message(client, MSG_RESP, msg.msg_body);
+                if (clients[i].taken && strcmp(msg.recipient_nickname, clients[i].nickname) == 0) {
+                    char buf[MSG_LEN * 2];
+                    sprintf(buf, "%s: %s", client->nickname, msg.msg_body);
+                    send_message(&clients[i], MSG_RESP, buf);
                 }
             }
             break;
+        }
+        case MSG_2ALL: {
+            for (int i = 0; i < MAX_CLIENTS; i++) {
+                if (clients[i].taken && strcmp(client->nickname, clients[i].nickname) != 0) {
+                    char buf[MSG_LEN * 2];
+                    sprintf(buf, "%s: %s", client->nickname, msg.msg_body);
+                    send_message(&clients[i], MSG_RESP, buf);
+                }
+            }
+            break;
+        }
+        case MSG_LIST: {
+            char * clients_list = list_clients();
+            send_message(client, MSG_RESP, clients_list);
+            free(clients_list);
+            break;
+        }
+        case MSG_STOP: {
+            pthread_mutex_lock(&mutex);
+            epoll_ctl(epoll, EPOLL_CTL_DEL, client->fd, NULL);
+            client->active = false;
+            client->taken = false;
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+        default:
+            break;
+
     }
+}
+
+void * ping(void * _) {
+    while (1) {
+        sleep(20);
+        pthread_mutex_lock(&mutex);
+        for (int i = 0; i < MAX_CLIENTS; i++) {
+            if (clients[i].taken == true) {
+                printf("%d\n", clients[i].responding);
+                fflush(stdout);
+                if (clients[i].responding == true) {
+                    struct message message;
+                    message.type = MSG_PING;
+                    clients[i].responding = false;
+                    write(clients[i].fd, &message, sizeof(message));
+                } else {
+                    clients[i].responding = false;
+                    epoll_ctl(epoll, EPOLL_CTL_DEL, clients[i].fd, NULL);
+                    clients[i].taken = false;
+                }
+            }
+        }
+        pthread_mutex_unlock(&mutex);
+    }
+    return NULL;
 }
 
 int main(int argc, char ** argv) {
@@ -124,7 +202,8 @@ int main(int argc, char ** argv) {
     int web_socket = socket(AF_INET, SOCK_STREAM, 0);
     init_socket(web_socket, &web_addr, sizeof(web_addr));
 
-    // todo: ping
+    pthread_t pinging_thread;
+    pthread_create(&pinging_thread, NULL, ping, NULL);
 
     printf("Server listening on: 127.0.0.1:%d and %s\n", port, path);
     struct epoll_event events[16];
